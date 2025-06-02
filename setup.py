@@ -3,6 +3,7 @@
 from database import Base, engine  # Correct import
 from models.business import Business
 from models.permit import Permit
+from models.user import User
 
 print("Creating database tables...")
 

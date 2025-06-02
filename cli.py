@@ -1,55 +1,104 @@
 from database import session
 from models.business import Business
 from models.permit import Permit
+from models.user import User
 from datetime import datetime, timedelta,date
 from sqlalchemy import or_,func
 
 
-def authenticate():
-    password=input("Enter Admin Password ")
-    return password == "admin123"
+def login():
+    print("=== Login ===")
+    username = input("Username: ").strip()
+    password = input("Password: ").strip()
+    user = session.query(User).filter_by(username=username, password=password).first()
+    if user:
+        print(f"Welcome {user.username}! Role: {user.role}")
+        return user
+    else:
+        print("Invalid username or password.")
+        return None
 
-def menu():
-
-    if not authenticate():
-        print("\n Access denied")
-        return
-    
+def menu(user):
     while True:
-        print("\n County Permit Tracker")
-        print("1. Register a Business ")
-        print("2. Issue Permit") 
-        print("3. Renew Permit ")
-        print("4. List All Businesses") 
-        print("5. View Business Permit History") 
-        print("6. Check Expired Permits")
-        print("7. Search Businesses")
-        print("8. Total revenue ")
-        print("9. Exit") 
+        print("\n--- County Permit Tracker ---")
+        print("Select an option:")
 
-        choice= input('Choose an option ')
+        # Admin menu
+        if user.role == "admin":
+            print("1. Register a Business")
+            print("2. Issue Permit")
+            print("3. Renew Permit")
+            print("4. List All Businesses")
+            print("5. View Business Permit History")
+            print("6. Check Expired Permits")
+            print("7. Search Businesses")
+            print("8. Logout")
 
-        if choice =='1':
-            register_business()
-        elif choice =="2":
-            issue_permit()
-        elif choice =="3":
-            renew_permit()
-        elif choice =="4":
-            list_businesses()
-        elif choice == "5":
-            view_permit_history()
-        elif choice == "6":
-            check_expired_permits()
-        elif choice =="7":
-              search_business()    
-        elif choice == "8":
-            view_total_revenue()      
-        elif choice == "9":
-            print("Goodbye")
-            break
-        else:
-            print("Invalid choice ")      
+        # Inspector menu
+        elif user.role == "inspector":
+            print("4. List All Businesses")
+            print("5. View Business Permit History")
+            print("6. Check Expired Permits")
+            print("7. Search Businesses")
+            print("8. Logout")
+
+        # Business owner menu
+        elif user.role == "owner":
+            print("5. View My Business Permit History")
+            print("7. Search Businesses")
+            print("8. Logout")
+
+        choice = input("Choose an option: ").strip()
+
+        # Admin options
+        if user.role == "admin":
+            if choice == "1":
+                register_business()
+            elif choice == "2":
+                issue_permit()
+            elif choice == "3":
+                renew_permit()
+            elif choice == "4":
+                list_businesses()
+            elif choice == "5":
+                view_permit_history()
+            elif choice == "6":
+                check_expired_permits()
+            elif choice == "7":
+                search_business()
+            elif choice == "8":
+                print("Logging out...")
+                break
+            else:
+                print("Invalid choice.")
+
+        # Inspector options
+        elif user.role == "inspector":
+            if choice == "4":
+                list_businesses()
+            elif choice == "5":
+                view_permit_history()
+            elif choice == "6":
+                check_expired_permits()
+            elif choice == "7":
+                search_business()
+            elif choice == "8":
+                print("Logging out...")
+                break
+            else:
+                print("Invalid choice.")
+
+        # Owner options
+        elif user.role == "owner":
+            if choice == "5":
+                view_permit_history(user)
+            elif choice == "7":
+                search_business()
+            elif choice == "10":
+                print("Logging out...")
+                break
+            else:
+                print("Invalid choice.")   
 
 # empty input fields duplicate busines name invalid menu choices
 def get_valid_input(prompt, validation_fn, error_msg):

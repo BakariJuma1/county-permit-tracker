@@ -1,10 +1,17 @@
-from cli import menu
+from cli import menu, login
 from database import session
 
-if __name__== "__main__":
+def main():
+    user = None
+    while not user:
+        user = login()
+    
+    menu(user)
+
+if __name__ == "__main__":
     try:
-       menu()
+        main()
     except KeyboardInterrupt:
-        print("\n Operation cancelled by User")   
+        print("\nOperation cancelled by user.")
     finally:
-        session.close()    
+        session.close()
