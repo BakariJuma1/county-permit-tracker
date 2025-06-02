@@ -12,7 +12,7 @@ class Business(Base):
     business_type = Column(String,nullable = False)
     location = Column(String,nullable=False)
 
-    permits = relationship("permit",back_populates="business",cascade="al,delete-orphan")
+    permits = relationship("Permit",back_populates="business",cascade="all,delete-orphan")
 
     def __repr__(self):
         return(f"<Business(name={self.name},Owner={self.owner})>")
