@@ -2,9 +2,32 @@ from database import session
 from models.business import Business
 from models.permit import Permit
 from models.user import User
-from datetime import datetime, timedelta,date
-from sqlalchemy import or_,func
+from datetime import datetime, timedelta, date
+from sqlalchemy import or_, func
 
+def register_user():
+    print("\n=== Register New User ===")
+    username = input("Enter a username: ").strip()
+
+    existing_user = session.query(User).filter_by(username=username).first()
+    if existing_user:
+        print("Username already exists. Try another.")
+        return
+
+    password = input("Enter a password: ").strip()
+
+    print("Roles: admin, inspector, owner")
+    role = input("Enter user role: ").strip().lower()
+
+    if role not in ["admin", "inspector", "owner"]:
+        print("Invalid role.")
+        return
+
+    new_user = User(username=username, password=password, role=role)
+    session.add(new_user)
+    session.commit()
+
+    print(f"User '{username}' registered successfully as '{role}'.")
 
 def login():
     print("=== Login ===")
@@ -24,7 +47,6 @@ def menu(user):
         print("\n--- County Permit Tracker ---")
         print("Select an option:")
 
-        # Admin menu
         if user.role == "admin":
             print("1. Register a Business")
             print("2. Issue Permit")
@@ -34,24 +56,22 @@ def menu(user):
             print("6. Check Expired Permits")
             print("7. Search Businesses")
             print("8. Logout")
-
-        # Inspector menu
         elif user.role == "inspector":
             print("4. List All Businesses")
             print("5. View Business Permit History")
             print("6. Check Expired Permits")
             print("7. Search Businesses")
             print("8. Logout")
-
-        # Business owner menu
         elif user.role == "owner":
             print("5. View My Business Permit History")
             print("7. Search Businesses")
             print("8. Logout")
 
-        choice = input("Choose an option: ").strip()
+        choice = input("Choose an option or type 'b' to go back: ").strip().lower()
 
-        # Admin options
+        if choice == 'b':
+            continue
+
         if user.role == "admin":
             if choice == "1":
                 register_business()
@@ -62,7 +82,7 @@ def menu(user):
             elif choice == "4":
                 list_businesses()
             elif choice == "5":
-                view_permit_history()
+                view_permit_history(user)
             elif choice == "6":
                 check_expired_permits()
             elif choice == "7":
@@ -72,13 +92,11 @@ def menu(user):
                 break
             else:
                 print("Invalid choice.")
-
-        # Inspector options
         elif user.role == "inspector":
             if choice == "4":
                 list_businesses()
             elif choice == "5":
-                view_permit_history()
+                view_permit_history(user)
             elif choice == "6":
                 check_expired_permits()
             elif choice == "7":
@@ -88,20 +106,17 @@ def menu(user):
                 break
             else:
                 print("Invalid choice.")
-
-        # Owner options
         elif user.role == "owner":
             if choice == "5":
                 view_permit_history(user)
             elif choice == "7":
                 search_business()
-            elif choice == "10":
+            elif choice == "8":
                 print("Logging out...")
                 break
             else:
-                print("Invalid choice.")   
+                print("Invalid choice.")
 
-# empty input fields duplicate busines name invalid menu choices
 def get_valid_input(prompt, validation_fn, error_msg):
     while True:
         user_input = input(prompt).strip()
@@ -118,7 +133,7 @@ def register_business():
     b_type = input("Business Type ")
     location = input("Location ")
 
-    new_business = Business(name=name, owner=owner,business_type=b_type, location=location)
+    new_business = Business(name=name, owner=owner, business_type=b_type, location=location)
     session.add(new_business)
     session.commit()
     print("Business Registerd Succesfully")
@@ -145,7 +160,7 @@ def issue_permit():
     session.add(permit)
     session.commit()
     print(f"Permit issued to {business.name} successfully.")
-       
+
 def renew_permit():
     print("\n Renew Permit")
     permit_number = input("Enter Permit Number to Renew: ").strip()
@@ -159,7 +174,6 @@ def renew_permit():
     permit.expiry_date = permit.issue_date + timedelta(days=365)
     session.commit()
     print("Permit Renewed Successfully")
-
 
 def list_businesses():
     print("\n Registerd  Businesses")
@@ -184,7 +198,7 @@ def check_expired_permits():
     permits = session.query(Permit).all()
     for permit in permits:
         if permit.is_expired:
-            print(f"{permit.permit_number} (Business ID: {permit.business_id}) expired on {permit.expiry_date}")  
+            print(f"{permit.permit_number} (Business ID: {permit.business_id}) expired on {permit.expiry_date}")
 
 def search_business():
     term = input("Enter name or location to search: ").lower()
@@ -200,4 +214,3 @@ def search_business():
 def view_total_revenue():
     total = session.query(Permit).with_entities(func.sum(Permit.fee)).scalar()
     print(f"Total Revenue from Permits: KES {total if total else 0}")
-

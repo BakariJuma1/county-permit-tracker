@@ -27,4 +27,4 @@ biz_owner = User(username='ken',password='1234',role='owner')
 session.add(biz_owner)
 session.commit()
 
-print("User,inspectorand owner created!")
+print("User,inspector and owner created!")
