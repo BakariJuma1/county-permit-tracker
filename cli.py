@@ -8,6 +8,7 @@ from sqlalchemy import or_,func
 
 def login():
     print("=== Login ===")
+    print("If you are an inspector ,owner,admin login to perform your roles")
     username = input("Username: ").strip()
     password = input("Password: ").strip()
     user = session.query(User).filter_by(username=username, password=password).first()
@@ -155,7 +156,7 @@ def renew_permit():
         return
 
     permit.issue_date = date.today()
-    permit.expiry_date = permit.issue_date + timedelta(days=90)
+    permit.expiry_date = permit.issue_date + timedelta(days=365)
     session.commit()
     print("Permit Renewed Successfully")
 
@@ -166,7 +167,7 @@ def list_businesses():
     for biz in businesses:
         print(f"ID:{biz.id},Name:{biz.name},Owner:{biz.owner},Type:{biz.business_type},Location:{biz.location}")
 
-def view_permit_history():
+def view_permit_history(user):
     print("\n Permit History")
     business_id = int(input("Enter Business ID: "))
     business = session.query(Business).get(business_id)
